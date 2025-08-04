@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 
 const AuthPage = ({ onLogin }) => {
   const [isLogin, setIsLogin] = useState(true);
@@ -39,7 +39,7 @@ const AuthPage = ({ onLogin }) => {
         ? { contact: formData.contact, password: formData.password }
         : formData;
 
-      const response = await axios.post(endpoint, payload);
+      const response = await api.post(endpoint, payload);
       
       if (response.data.token) {
         onLogin(response.data.token);

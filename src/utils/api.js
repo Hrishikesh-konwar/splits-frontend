@@ -1,16 +1,9 @@
 import axios from 'axios';
 
-// Debug: Log the environment variable
-console.log('VITE_API_URL:', import.meta.env.VITE_API_URL);
-console.log('All env vars:', import.meta.env);
-
 // Create axios instance
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'https://splits-backend-1084024354987.europe-west1.run.app'
 });
-
-// Debug: Log the actual baseURL being used
-console.log('Axios baseURL:', api.defaults.baseURL);
 
 // Function to set up axios interceptors
 export const setupAxiosInterceptors = (onTokenExpired) => {
