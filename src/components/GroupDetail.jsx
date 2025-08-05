@@ -9,6 +9,7 @@ const GroupDetail = ({ user, onLogout, onTokenExpired }) => {
   const [group, setGroup] = useState(null);
   const [expenses, setExpenses] = useState([]);
   const [settlements, setSettlements] = useState([]);
+  const [completedSettlements, setCompletedSettlements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('expenses');
   const [showAddExpense, setShowAddExpense] = useState(false);
@@ -38,6 +39,7 @@ const GroupDetail = ({ user, onLogout, onTokenExpired }) => {
       setGroup(mappedGroup);
       setExpenses(expensesResponse.data.expenses || []);
       setSettlements(expensesResponse.data.balance || []);
+      setCompletedSettlements(expensesResponse.data.settlements || []);
       
     } catch (err) {
       if (err.response?.status === 401) {
@@ -85,6 +87,36 @@ const GroupDetail = ({ user, onLogout, onTokenExpired }) => {
         return;
       }
       throw new Error(err.response?.data?.message || 'Failed to add member');
+    }
+  };
+
+  const handleSettlement = async (settlement) => {
+    try {
+      // Find the member details for from and to
+      const fromMember = group.members.find(m => m.name === settlement.from);
+      const toMember = group.members.find(m => m.name === settlement.to);
+      
+      if (!fromMember || !toMember) {
+        setError('Could not find member details for settlement');
+        return;
+      }
+
+      await api.post('/api/add-settlement', {
+        groupId,
+        from: fromMember.contact,
+        to: toMember.contact,
+        amount: settlement.amount,
+        fromName: settlement.from,
+        toName: settlement.to
+      });
+      
+      fetchGroupData(); // Refresh data
+    } catch (err) {
+      if (err.response?.status === 401) {
+        onTokenExpired();
+        return;
+      }
+      setError(err.response?.data?.message || 'Failed to record settlement');
     }
   };
 
@@ -215,29 +247,62 @@ const GroupDetail = ({ user, onLogout, onTokenExpired }) => {
 
           {activeTab === 'settlements' && (
             <div className="settlement-list">
-              {settlements.length === 0 ? (
+              {/* Pending Settlements */}
+              {settlements.length > 0 && (
+                <div>
+                  <h4 style={{ marginBottom: '16px', color: '#333' }}>💸 Pending Settlements</h4>
+                  {settlements.map((settlement, index) => {
+                    const person = Object.keys(settlement)[0];
+                    const payments = settlement[person];
+                    
+                    return (
+                      <div key={index} className="settlement-item">
+                        <div className="settlement-person">
+                          <strong>{person}</strong> owes:
+                        </div>
+                        {payments.map((payment, paymentIndex) => (
+                          <div key={paymentIndex} className="settlement-payment" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span>→ ₹{payment.amount} to <strong>{payment.to}</strong></span>
+                            <button 
+                              onClick={() => handleSettlement({ from: person, to: payment.to, amount: payment.amount })}
+                              className="btn btn-primary"
+                              style={{ fontSize: '12px', padding: '4px 8px' }}
+                            >
+                              Mark as Settled
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Completed Settlements */}
+              {completedSettlements.length > 0 && (
+                <div style={{ marginTop: settlements.length > 0 ? '32px' : '0' }}>
+                  <h4 style={{ marginBottom: '16px', color: '#333' }}>✅ Completed Settlements</h4>
+                  {completedSettlements.map((settlement, index) => (
+                    <div key={index} className="settlement-item" style={{ backgroundColor: '#f8f9fa', border: '1px solid #e9ecef' }}>
+                      <div className="settlement-payment">
+                        ✅ <strong>{settlement.fromName}</strong> paid ₹{settlement.amount} to <strong>{settlement.toName}</strong>
+                        <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
+                          Settled on {new Date(settlement.settledAt).toLocaleDateString()}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* All settled message */}
+              {settlements.length === 0 && completedSettlements.length === 0 && (
                 <div style={{ textAlign: 'center', padding: '60px 20px' }}>
                   <h3 style={{ color: '#666', marginBottom: '16px' }}>All settled up! 🎉</h3>
                   <p style={{ color: '#999' }}>
                     No pending settlements. Everyone is even!
                   </p>
                 </div>
-              ) : (
-                settlements.map((settlement, index) => {
-                  const person = Object.keys(settlement)[0];
-                  const payments = settlement[person];
-                  
-                  return (
-                    <div key={index} className="settlement-item">
-                      <div className="settlement-person">💸 <strong>{person}</strong> owes:</div>
-                      {payments.map((payment, paymentIndex) => (
-                        <div key={paymentIndex} className="settlement-payment">
-                          → ₹{payment.amount} to <strong>{payment.to}</strong>
-                        </div>
-                      ))}
-                    </div>
-                  );
-                })
               )}
             </div>
           )}
