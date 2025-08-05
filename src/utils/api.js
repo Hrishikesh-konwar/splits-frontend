@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Create axios instance
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'https://splits-backend-1084024354987.europe-west1.run.app'
+  baseURL: import.meta.env.VITE_API_URL || 'https://splits-backend.vercel.app'
 });
 
 // Function to set up axios interceptors
