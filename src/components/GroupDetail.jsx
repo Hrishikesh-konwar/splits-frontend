@@ -16,6 +16,7 @@ const GroupDetail = ({ user, onLogout, onTokenExpired }) => {
   const [showAddExpense, setShowAddExpense] = useState(false);
   const [showAddMember, setShowAddMember] = useState(false);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
   const fetchGroupData = useCallback(async (isRefresh = false) => {
     try {
@@ -71,8 +72,11 @@ const GroupDetail = ({ user, onLogout, onTokenExpired }) => {
         ...expenseData,
         groupId
       });
-      // Force page reload for complete refresh
-      window.location.reload();
+      // Refresh data without page reload
+      await fetchGroupData(true);
+      setSuccessMessage('Expense added successfully!');
+      setTimeout(() => setSuccessMessage(''), 3000);
+      setShowAddExpense(false);
     } catch (err) {
       if (err.response?.status === 401) {
         onTokenExpired();
@@ -89,8 +93,11 @@ const GroupDetail = ({ user, onLogout, onTokenExpired }) => {
         memberContact: memberData.contact,
         memberName: memberData.name
       });
-      // Force page reload for complete refresh
-      window.location.reload();
+      // Refresh data without page reload
+      await fetchGroupData(true);
+      setSuccessMessage('Member added successfully!');
+      setTimeout(() => setSuccessMessage(''), 3000);
+      setShowAddMember(false);
     } catch (err) {
       if (err.response?.status === 401) {
         onTokenExpired();
@@ -120,8 +127,10 @@ const GroupDetail = ({ user, onLogout, onTokenExpired }) => {
         toName: settlement.to
       });
       
-      // Force page reload for complete refresh
-      window.location.reload();
+      // Refresh data without page reload
+      await fetchGroupData(true);
+      setSuccessMessage('Settlement recorded successfully!');
+      setTimeout(() => setSuccessMessage(''), 3000);
     } catch (err) {
       if (err.response?.status === 401) {
         onTokenExpired();
@@ -138,8 +147,10 @@ const GroupDetail = ({ user, onLogout, onTokenExpired }) => {
           groupId,
           memberContact
         });
-        // Force page reload for complete refresh
-        window.location.reload();
+        // Refresh data without page reload
+        await fetchGroupData(true);
+        setSuccessMessage('Member removed successfully!');
+        setTimeout(() => setSuccessMessage(''), 3000);
       } catch (err) {
         if (err.response?.status === 401) {
           onTokenExpired();
@@ -211,6 +222,7 @@ const GroupDetail = ({ user, onLogout, onTokenExpired }) => {
           </div>
 
           {error && <div className="alert alert-error">{error}</div>}
+          {successMessage && <div className="alert alert-success">{successMessage}</div>}
 
           <div className="tabs">
             <button 
