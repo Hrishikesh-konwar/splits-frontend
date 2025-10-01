@@ -11,13 +11,19 @@ const GroupDetail = ({ user, onLogout, onTokenExpired }) => {
   const [settlements, setSettlements] = useState([]);
   const [completedSettlements, setCompletedSettlements] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState('expenses');
   const [showAddExpense, setShowAddExpense] = useState(false);
   const [showAddMember, setShowAddMember] = useState(false);
   const [error, setError] = useState('');
 
-  const fetchGroupData = useCallback(async () => {
+  const fetchGroupData = useCallback(async (isRefresh = false) => {
     try {
+      if (isRefresh) {
+        setRefreshing(true);
+        setError(''); // Clear any previous errors
+      }
+      
       // Fetch group details and expenses in parallel
       const [groupResponse, expensesResponse] = await Promise.all([
         api.get(`/api/get-group-by-id?groupId=${groupId}`),
@@ -49,6 +55,9 @@ const GroupDetail = ({ user, onLogout, onTokenExpired }) => {
       setError(err.response?.data?.message || 'Failed to fetch group data');
     } finally {
       setLoading(false);
+      if (isRefresh) {
+        setRefreshing(false);
+      }
     }
   }, [groupId, onTokenExpired]);
 
@@ -62,8 +71,8 @@ const GroupDetail = ({ user, onLogout, onTokenExpired }) => {
         ...expenseData,
         groupId
       });
-      fetchGroupData(); // Refresh data
-      setShowAddExpense(false);
+      // Force page reload for complete refresh
+      window.location.reload();
     } catch (err) {
       if (err.response?.status === 401) {
         onTokenExpired();
@@ -80,8 +89,8 @@ const GroupDetail = ({ user, onLogout, onTokenExpired }) => {
         memberContact: memberData.contact,
         memberName: memberData.name
       });
-      fetchGroupData(); // Refresh data
-      setShowAddMember(false);
+      // Force page reload for complete refresh
+      window.location.reload();
     } catch (err) {
       if (err.response?.status === 401) {
         onTokenExpired();
@@ -111,7 +120,8 @@ const GroupDetail = ({ user, onLogout, onTokenExpired }) => {
         toName: settlement.to
       });
       
-      fetchGroupData(); // Refresh data
+      // Force page reload for complete refresh
+      window.location.reload();
     } catch (err) {
       if (err.response?.status === 401) {
         onTokenExpired();
@@ -128,7 +138,8 @@ const GroupDetail = ({ user, onLogout, onTokenExpired }) => {
           groupId,
           memberContact
         });
-        fetchGroupData(); // Refresh data
+        // Force page reload for complete refresh
+        window.location.reload();
       } catch (err) {
         if (err.response?.status === 401) {
           onTokenExpired();
@@ -177,6 +188,13 @@ const GroupDetail = ({ user, onLogout, onTokenExpired }) => {
               </p>
             </div>
             <div style={{ display: 'flex', gap: '12px' }}>
+              <button 
+                onClick={() => fetchGroupData(true)} 
+                className="btn btn-secondary"
+                disabled={refreshing}
+              >
+                {refreshing ? '🔄' : '🔄'} Refresh
+              </button>
               <button 
                 onClick={() => setShowAddMember(true)} 
                 className="btn btn-secondary"
