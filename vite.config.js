@@ -5,11 +5,20 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   server: {
+    historyApiFallback: true, // This enables SPA fallback for dev server
     proxy: {
       '/api': {
         target: 'http://localhost:8080',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, '')
+      }
+    }
+  },
+  build: {
+    // Ensure proper build configuration for SPA
+    rollupOptions: {
+      output: {
+        manualChunks: undefined
       }
     }
   }
