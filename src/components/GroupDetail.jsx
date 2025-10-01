@@ -77,7 +77,8 @@ const GroupDetail = ({ user, onLogout, onTokenExpired }) => {
     try {
       await api.post('/api/add-member', {
         groupId,
-        memberContact: memberData.contact // Backend expects memberContact
+        memberContact: memberData.contact,
+        memberName: memberData.name
       });
       fetchGroupData(); // Refresh data
       setShowAddMember(false);

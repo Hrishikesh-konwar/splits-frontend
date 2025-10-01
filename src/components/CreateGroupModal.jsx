@@ -34,7 +34,7 @@ const CreateGroupModal = ({ onClose, onSubmit }) => {
 
       await onSubmit({
         groupName,
-        members: validContacts.map(contact => parseInt(contact))
+        groupMembers: validContacts.map(contact => parseInt(contact))
       });
     } catch (err) {
       setError(err.message);

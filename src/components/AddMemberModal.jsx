@@ -87,7 +87,7 @@ const AddMemberModal = ({ group, onClose, onSubmit }) => {
 
           <div style={{ fontSize: '14px', color: '#666', marginTop: '12px', padding: '12px', backgroundColor: '#f8f9fa', borderRadius: '8px' }}>
             💡 <strong>Note:</strong> If this contact number is registered in Splits, they'll be automatically added. 
-            Otherwise, they'll be added as a placeholder and can join later.
+            Otherwise, they'll be added as a placeholder and can login later with this number and password(same as number).
           </div>
 
           <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '24px' }}>
